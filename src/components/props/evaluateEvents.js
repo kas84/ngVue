@@ -15,12 +15,13 @@ export default function evaluateEvents (dataExprsMap, scope) {
 
   const evaluatedEvents = {}
   Object.keys(events).forEach(eventName => {
-    evaluatedEvents[eventName] = scope.$eval(events[eventName])
-    const fn = evaluatedEvents[eventName]
+    const vueEventName = 'on' + eventName[0].toUpperCase() + eventName.slice(1)
+    evaluatedEvents[vueEventName] = scope.$eval(events[eventName])
+    const fn = evaluatedEvents[vueEventName]
     if (!angular.isFunction(fn)) {
       return
     }
-    evaluatedEvents[eventName] = function () {
+    evaluatedEvents[vueEventName] = function () {
       return scope.$evalAsync(() => fn.apply(null, arguments))
     }
   })

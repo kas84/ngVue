@@ -1,5 +1,7 @@
 import angular, { isArray, isObject } from 'angular'
+import { createApp } from 'vue'
 import './provider'
+const Vue = createApp
 
 // contains all the registered filter functions
 const registered = Object.create(null)

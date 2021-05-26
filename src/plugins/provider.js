@@ -1,6 +1,7 @@
 import angular, { extend } from 'angular'
-import Vue from 'vue'
+import { createApp } from 'vue'
 import logger from '../../lib/logger'
+const Vue = createApp
 
 // init
 const pluginHooks = Object.create(null)

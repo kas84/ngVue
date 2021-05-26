@@ -1,5 +1,7 @@
 import angular from 'angular'
-import Vue from 'vue'
+import { createApp, render } from 'vue'
+import { h } from 'vue'
+import { getState } from '../state'
 import getVueComponent from '../components/getVueComponent'
 import getPropExprs from '../components/props/getExpressions'
 import watchPropExprs from '../components/props/watchExpressions'
@@ -8,10 +10,18 @@ import evalPropEvents from '../components/props/evaluateEvents'
 import evaluateDirectives from '../directives/evaluateDirectives'
 import extractSpecialAttributes from '../components/props/extractSpecialAttributes'
 import watchSpecialAttributes from '../components/props/watchSpecialAttributes'
+import sha256 from 'crypto-js/sha256'
+const Vue = createApp
+const _h = h
 
 export function ngVueLinker (componentName, jqElement, elAttributes, scope, $injector) {
   if (!jqElement.parent().length) throw new Error('ngVue components must have a parent tag or they will not render')
-
+  const e = jqElement[0]
+  if (!e.id) {
+    const hashDigest = sha256('' + e.offsetTop + e.offsetLeft + e.offsetHeight + e.offsetWidth)
+    // console.log('hashDigest', hashDigest.toString())
+    e.id = hashDigest.toString()
+  }
   const $ngVue = $injector.has('$ngVue') ? $injector.get('$ngVue') : null
 
   const dataExprsMap = getPropExprs(elAttributes)
@@ -25,7 +35,6 @@ export function ngVueLinker (componentName, jqElement, elAttributes, scope, $inj
     }
   }
   const on = evalPropEvents(dataExprsMap, scope) || {}
-
   const inQuirkMode = $ngVue ? $ngVue.inQuirkMode() : false
   const rootProps = $ngVue ? $ngVue.getRootProps() : {}
 
@@ -57,24 +66,24 @@ export function ngVueLinker (componentName, jqElement, elAttributes, scope, $inj
   watchPropExprs(dataExprsMap, reactiveData, watchOptions, scope, 'props')
   watchPropExprs(dataExprsMap, reactiveData, watchOptions, scope, 'attrs')
   watchSpecialAttributes(reactiveData, jqElement, scope)
-
-  let vueInstance = new Vue({
-    name: 'NgVue',
-    el: jqElement[0],
-    data: reactiveData,
-    render (h) {
-      return (
-        <Component
-          {...{ directives }}
-          {...{ props: reactiveData._v.props, on, attrs: reactiveData._v.attrs }}
-          {...reactiveData._v.special}
-        >
-          {<span ref="__slot__" />}
-        </Component>
-      )
-    },
-    ...props
+  const state = getState(e.id)
+  state.props.value = reactiveData._v.props
+  const rProps = state.props
+  const newOn = {}
+  for (let key in on) {
+    newOn[key] = function ({ k, v }) {
+      // rProps[k] = v
+      on[key](v)
+    }
+  }
+  // console.log('render props', rProps.value)
+  let vueInstance = createApp({
+    render () {
+      return _h(Component, { ...rProps.value, ...on })
+    }
   })
+
+  vueInstance.mount(jqElement[0])
 
   scope.$on('$destroy', () => {
     vueInstance.$destroy()

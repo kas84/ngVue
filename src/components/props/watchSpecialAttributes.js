@@ -1,5 +1,5 @@
-import Vue from 'vue'
-
+import { createApp } from 'vue'
+const Vue = createApp()
 export default function watchSpecialAttributes (reactiveData, element, scope) {
   Object.keys(reactiveData._v.special).forEach(key => {
     // Use scope.$watch instead of attrs.$observe because we want to catch changes in attribute

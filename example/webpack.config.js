@@ -1,7 +1,7 @@
 var path = require('path')
 var fs = require('fs')
 var webpack = require('webpack')
-const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const { VueLoaderPlugin } = require('vue-loader')
 
 function getExampleEntries () {
   var dir = 'example'
@@ -42,7 +42,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ['vue-style-loader', 'css-loader']
+        use: ['css-loader']
       },
       {
         test: /\.(png|jpg|gif|svg)$/,

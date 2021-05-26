@@ -1,18 +1,20 @@
 import { isString, isArray, isObject } from 'angular'
-import Vue from 'vue'
-
-function watch (expressions, reactiveData, type) {
+import { createApp, h, reactive } from 'vue'
+import { getState } from '../../state'
+const Vue = createApp
+function watch (expressions, reactiveData, type, id) {
   return watchFunc => {
     // for `v-props` / `v-data`
     if (isString(expressions)) {
-      watchFunc(expressions, Vue.set.bind(Vue, reactiveData._v, type))
-      return
+      const state = getState(id)
+      state.props.value = reactiveData._v.props
+      watchFunc(expressions, state.props.value)
     }
 
     // for `v-props-something`
-    Object.keys(expressions).forEach(name => {
-      watchFunc(expressions[name], Vue.set.bind(Vue, reactiveData._v[type], name))
-    })
+    // Object.keys(expressions).forEach(name => {
+    //   watchFunc(expressions[name], Vue.set.bind(Vue, reactiveData._v[type], name))
+    // })
   }
 }
 
@@ -22,7 +24,7 @@ function watch (expressions, reactiveData, type) {
  *                            caused by the limitation of the reactivity system
  * @returns Function a watch callback when the expression value is changed
  */
-function notify (setter, inQuirkMode) {
+function notify (setter, inQuirkMode, id) {
   return function (newVal) {
     let value = newVal
 
@@ -33,8 +35,10 @@ function notify (setter, inQuirkMode) {
       // new values into a reactive data.
       value = isArray(newVal) ? [...newVal] : isObject(newVal) ? { ...newVal } : newVal
     }
-
-    setter(value)
+    const state = getState(id)
+    state.props.value = {
+      ...newVal
+    }
   }
 }
 
@@ -64,23 +68,25 @@ export default function watchExpressions (dataExprsMap, reactiveData, options, s
   }
 
   const { depth, quirk } = options
-  const watcher = watch(expressions, reactiveData, type)
+  const id = dataExprsMap && dataExprsMap.htmlAttributes && dataExprsMap.htmlAttributes.id
+  const watcher = watch(expressions, reactiveData, type, id)
 
   switch (depth) {
     case 'value':
       watcher((expression, setter) => {
-        scope.$watch(expression, notify(setter, quirk), true)
+        console.log('watcher....')
+        scope.$watch(expression, notify(setter, quirk, id), true)
       })
       break
     case 'collection':
       watcher((expression, setter) => {
-        scope.$watchCollection(expression, notify(setter, quirk))
+        scope.$watchCollection(expression, notify(setter, quirk, id))
       })
       break
     case 'reference':
     default:
       watcher((expression, setter) => {
-        scope.$watch(expression, notify(setter, quirk))
+        scope.$watch(expression, notify(setter, quirk, id))
       })
   }
 }

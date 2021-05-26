@@ -1,15 +1,16 @@
 import angular from 'angular'
-import Vue from 'vue'
+import { createApp, h } from 'vue'
 import '../../src/index.js'
-
+const Vue = createApp()
+const _h = h
 const VueComponent = Vue.component('hello-component', {
   props: {
     firstName: String,
     lastName: String,
     description: String
   },
-  render (h) {
-    return (
+  render () {
+    return _h(
       <div class="card blue-grey darken-1">
         <div class="card-content white-text">
           <span class="card-title">
@@ -29,6 +30,7 @@ angular
   .module('vue.components', ['ngVue'])
   .controller('MainController', function () {
     this.person = {
+      title: 'this is the title',
       firstName: 'The',
       lastName: 'World',
       description:
