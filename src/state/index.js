@@ -1,8 +1,6 @@
 import { reactive } from 'vue'
 
-export const state = {
-  props: reactive({})
-}
+export const state = {}
 export function getState (id) {
   if (!state[id]) {
     state[id] = { props: reactive({}) }

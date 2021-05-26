@@ -5,6 +5,7 @@ const Vue = createApp
 function watch (expressions, reactiveData, type, id) {
   return watchFunc => {
     // for `v-props` / `v-data`
+    console.log('watching')
     if (isString(expressions)) {
       const state = getState(id)
       state.props.value = reactiveData._v.props
@@ -27,7 +28,7 @@ function watch (expressions, reactiveData, type, id) {
 function notify (setter, inQuirkMode, id) {
   return function (newVal) {
     let value = newVal
-
+    console.log('notifying')
     if (inQuirkMode) {
       // `Vue.set` uses a shallow comparision to detect the change in the setters, and so
       // for an object and an array, we have to create a new one to force the reactivity
