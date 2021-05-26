@@ -10,7 +10,6 @@ import evalPropEvents from '../components/props/evaluateEvents'
 import evaluateDirectives from '../directives/evaluateDirectives'
 import extractSpecialAttributes from '../components/props/extractSpecialAttributes'
 import watchSpecialAttributes from '../components/props/watchSpecialAttributes'
-import sha256 from 'crypto-js/sha256'
 const Vue = createApp
 const _h = h
 
@@ -18,9 +17,7 @@ export function ngVueLinker (componentName, jqElement, elAttributes, scope, $inj
   if (!jqElement.parent().length) throw new Error('ngVue components must have a parent tag or they will not render')
   const e = jqElement[0]
   if (!e.id) {
-    const hashDigest = sha256('' + e.offsetTop + e.offsetLeft + e.offsetHeight + e.offsetWidth)
-    // console.log('hashDigest', hashDigest.toString())
-    e.id = hashDigest.toString()
+    throw new Error('ngVue components must have a unique id')
   }
   const $ngVue = $injector.has('$ngVue') ? $injector.get('$ngVue') : null
 
@@ -69,14 +66,6 @@ export function ngVueLinker (componentName, jqElement, elAttributes, scope, $inj
   const state = getState(e.id)
   state.props.value = reactiveData._v.props
   const rProps = state.props
-  const newOn = {}
-  for (let key in on) {
-    newOn[key] = function ({ k, v }) {
-      // rProps[k] = v
-      on[key](v)
-    }
-  }
-  // console.log('render props', rProps.value)
   let vueInstance = createApp({
     render () {
       return _h(Component, { ...rProps.value, ...on })
